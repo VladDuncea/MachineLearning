@@ -2,13 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.naive_bayes import MultinomialNB
 
-
-
 train_images = np.loadtxt('data/train_images.txt')
 train_labels = np.loadtxt('data/train_labels.txt', 'int')
 test_images = np.loadtxt('data/test_images.txt')
 test_labels = np.loadtxt('data/test_labels.txt', 'int')
 
+# -----------------------------------------------------
 # punctul 2
 num_bins = 5
 bins = np.linspace(start=0, stop=255, num=num_bins)  # returneaza intervalele
@@ -22,6 +21,7 @@ def values_to_bins(matrix, _bins):
 discreet_train = values_to_bins(train_images, bins)
 discreet_test = values_to_bins(test_images, bins)
 
+# -----------------------------------------------------
 # punctul 3
 
 naive_bayes_model = MultinomialNB()
@@ -31,6 +31,7 @@ naive_bayes_model.predict(discreet_test)
 score = naive_bayes_model.score(discreet_test, test_labels)
 print("Scorul: " + str(score))
 
+# -----------------------------------------------------
 # punctul 4
 num_bins_vect = np.array([3, 5, 7, 9, 11])
 
