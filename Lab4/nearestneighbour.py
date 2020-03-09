@@ -65,7 +65,7 @@ predictions = np.zeros(len(test_images))
 nearest_neigh = [1, 3, 5, 7, 9]
 
 #build or read accuracy ?
-calc_acc_l1 = False
+calc_acc_l1 = True
 calc_acc_l2 = False
 
 accuracy_l1 = np.zeros(len(nearest_neigh))
