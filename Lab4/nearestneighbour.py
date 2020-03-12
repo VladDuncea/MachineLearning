@@ -30,7 +30,6 @@ class KnnClassifier:
 
 # ------------------------------------
 # punctul 3 + 4
-
 train_images = np.loadtxt('../Lab3/data/train_images.txt')
 train_labels = np.loadtxt('../Lab3/data/train_labels.txt', 'int')
 test_images = np.loadtxt('../Lab3/data/test_images.txt')
@@ -92,4 +91,46 @@ plt.legend(['L1', 'L2'])
 plt.show()
 
 
-
+# import numpy as np
+# import pdb
+#
+#
+# class Knn_classifier:
+#     def __init__(self, train_images, train_labels):
+#         self.train_images = train_images
+#         self.train_labels = train_labels
+#
+#     def classify_image(self, test_image, num_neighbors=3, metric='l2'):
+#         if (metric == 'l2'):
+#             distances = np.sqrt(np.sum((self.train_images - test_image) ** 2, axis=1))
+#         elif (metric == 'l1'):
+#             distances = np.sum(abs(self.train_images - test_image), axis=1)
+#         else:
+#             raise ('Unknown metric!')
+#         sort_index = np.argsort(distances)
+#         sort_index = sort_index[:num_neighbors]
+#         nearest_labels = self.train_labels[sort_index]
+#         hist = np.bincount(nearest_labels)
+#         return np.argmax(hist)
+#
+#     def classify_images(self, test_images, num_neighbors=3, metric='l2'):
+#         num_imgs = test_images.shape[0]
+#         predicted_labels = np.zeros((num_imgs), np.int)
+#         for i in range(num_imgs):
+#             predicted_labels[i] = self.classify_image(test_images[i, :], num_neighbors=num_neighbors, metric=metric)
+#         return predicted_labels
+#
+#
+# def accuracy_score(y_true, y_pred):
+#     return (y_pred == y_true).mean()
+#
+#
+# train_images = np.loadtxt('train_images.txt')  # incarcam imaginile
+# train_labels = np.loadtxt('train_labels.txt').astype(int)  # incarcam etichetele avand
+# test_images = np.loadtxt('test_images.txt')  # incarcam imaginile
+# test_labels = np.loadtxt('test_labels.txt').astype(int)  # incarcam etichetele avand
+#
+# classifier = Knn_classifier(train_images, train_labels)
+# predicted_labels = classifier.classify_images(test_images, 3, metric='l2')
+# print(accuracy_score(test_labels, predicted_labels))
+# np.savetxt('predictii_3nn_l2_mnist.txt', predicted_labels)

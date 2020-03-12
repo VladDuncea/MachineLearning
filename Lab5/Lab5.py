@@ -1,7 +1,11 @@
 import math
 from sklearn import preprocessing
+from sklearn import svm
 import numpy as np
 
+def calc_accuracy(predicted, true):
+    accuracy = (predicted == true).mean()
+    return accuracy
 
 # -----------------------------
 # punctul 2
@@ -32,7 +36,8 @@ def normalize_data(train_data, test_data, type=None):
                 norm_test += math.sqrt((test_data[i, j])**2)
                 norm_train += math.sqrt((train_data[i, j])**2)
             train_data[i] /= norm_train
-            test_data[i] /= norm_test
+            if norm_test != 0:
+                test_data[i] /= norm_test
 
     return train_data, test_data
 
@@ -53,25 +58,44 @@ class BagOfWords:
                     index += 1
         return self.dictData
 
-    def get_features(self,data):
-        return 1
+    def get_features(self, data):
+        features = np.zeros((len(data), len(self.dictData)))
+        for i in range(len(data)):
+            for word in data[i]:
+                if word in self.dictData:
+                    features[i, self.dictData[word]] += 1
+        return features
 
-
+# load data
 np_load_old = np.load
 # modify the default parameters of np.load
 np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
-
 train_sentences = np.load('data/training_sentences.npy')
 train_labels = np.load('data/training_labels.npy')
 test_sentences = np.load('data/test_sentences.npy')
 test_labels = np.load('data/test_labels.npy')
-
 np.load = np_load_old
 
-print(train_sentences)
-print(test_sentences)
 
+# create class
 bagofwords = BagOfWords()
+# build train dict
 dict_data = bagofwords.build_vocabulary(train_sentences)
-print(len(dict_data))
+print("Lungime dictionar:" + str(len(dict_data)))
+
+# get features
+features_train = bagofwords.get_features(train_sentences)
+features_test = bagofwords.get_features(test_sentences)
+
+normalized_train, normalized_test = normalize_data(features_train, features_test, "l2")
+print(normalized_train)
+print(normalized_test)
+
+# SVM model
+C_param = 1
+svm_model = svm.SVC(C_param, "linear") # kernel liniar
+svm_model.fit(normalized_train, train_labels) # train
+predicted_labels = svm_model.predict(normalized_test) # predict
+
+print("Accuracy: " + str(calc_accuracy(predicted_labels, test_labels)))
 
