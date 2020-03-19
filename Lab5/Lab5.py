@@ -1,13 +1,8 @@
-import math
+import sklearn
 from sklearn import preprocessing
 from sklearn import svm
 import numpy as np
 from sklearn.metrics import f1_score
-
-
-def calc_accuracy(predicted, true):
-    accuracy = (predicted == true).mean()
-    return accuracy
 
 
 # -----------------------------
@@ -82,7 +77,7 @@ svm_model = svm.LinearSVC(C=C_param)  # kernel liniar
 svm_model.fit(normalized_train, train_labels)  # train
 predicted_labels = svm_model.predict(normalized_test)  # predict
 
-print("Accuracy: " + str(calc_accuracy(predicted_labels, test_labels)))
+print("Accuracy: " + str(sklearn.metrics.accuracy_score(predicted_labels, test_labels)))
 print("F1: " + str(f1_score(predicted_labels, test_labels)))
 
 words = np.array(bagofwords.word_list)
