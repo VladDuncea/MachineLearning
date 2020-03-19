@@ -2,42 +2,31 @@ import math
 from sklearn import preprocessing
 from sklearn import svm
 import numpy as np
+from sklearn.metrics import f1_score
+
 
 def calc_accuracy(predicted, true):
     accuracy = (predicted == true).mean()
     return accuracy
 
+
 # -----------------------------
 # punctul 2
 def normalize_data(train_data, test_data, type=None):
+    scaler = None
     if type == 'standard':
-        stand = preprocessing.StandardScaler()
-        stand.fit(train_data)
-        train_data = stand.transform(train_data)
-        stand.fit(test_data)
-        test_data = stand.transform(test_data)
+        scaler = preprocessing.StandardScaler()
     elif type == 'min_max':
-        x = 1+1
-    # posibil sa trebuiasca sa fac l1,l2 cu numpy !!!
+        scaler = preprocessing.MinMaxScaler()
     elif type == 'l1':
-        for i in range(len(train_data)):
-            norm_train = 0
-            norm_test = 0
-            for j in range(len(train_data[i])):
-                norm_train += abs(train_data[i, j])
-                norm_test += abs(train_data[i, j])
-            train_data[i] /= norm_train
-            test_data[i] /= norm_test
+        scaler = preprocessing.Normalizer('l1')
     elif type == 'l2':
-        for i in range(len(test_data)):
-            norm_test = 0
-            norm_train = 0
-            for j in range(len(test_data[i])):
-                norm_test += math.sqrt((test_data[i, j])**2)
-                norm_train += math.sqrt((train_data[i, j])**2)
-            train_data[i] /= norm_train
-            if norm_test != 0:
-                test_data[i] /= norm_test
+        scaler = preprocessing.Normalizer('l2')
+
+    if scaler is not None:
+        scaler.fit(train_data)
+        train_data = scaler.transform(train_data)
+        test_data = scaler.transform(test_data)
 
     return train_data, test_data
 
@@ -47,16 +36,16 @@ class BagOfWords:
     def __init__(self):
         self.dictData = dict()
         self.word_list = []
+        self.dict_length = 0
 
     def build_vocabulary(self, data):
-        index =0
         for sentence in data:
             for word in sentence:
                 if word not in self.dictData:
-                    self.dictData[word] = index
+                    self.dictData[word] = self.dict_length
                     self.word_list.append(word)
-                    index += 1
-        return self.dictData
+                    self.dict_length += 1
+        self.word_list = np.array(self.word_list)
 
     def get_features(self, data):
         features = np.zeros((len(data), len(self.dictData)))
@@ -66,36 +55,38 @@ class BagOfWords:
                     features[i, self.dictData[word]] += 1
         return features
 
-# load data
-np_load_old = np.load
-# modify the default parameters of np.load
-np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
-train_sentences = np.load('data/training_sentences.npy')
-train_labels = np.load('data/training_labels.npy')
-test_sentences = np.load('data/test_sentences.npy')
-test_labels = np.load('data/test_labels.npy')
-np.load = np_load_old
 
+# load data
+train_sentences = np.load('data/training_sentences.npy', allow_pickle=True)
+train_labels = np.load('data/training_labels.npy', allow_pickle=True)
+test_sentences = np.load('data/test_sentences.npy', allow_pickle=True)
+test_labels = np.load('data/test_labels.npy', allow_pickle=True)
 
 # create class
 bagofwords = BagOfWords()
 # build train dict
-dict_data = bagofwords.build_vocabulary(train_sentences)
-print("Lungime dictionar:" + str(len(dict_data)))
+bagofwords.build_vocabulary(train_sentences)
+print("Lungime dictionar:" + str(bagofwords.dict_length))
 
 # get features
 features_train = bagofwords.get_features(train_sentences)
 features_test = bagofwords.get_features(test_sentences)
 
 normalized_train, normalized_test = normalize_data(features_train, features_test, "l2")
-print(normalized_train)
-print(normalized_test)
+# print(normalized_train)
+# print(normalized_test)
 
 # SVM model
 C_param = 1
-svm_model = svm.SVC(C_param, "linear") # kernel liniar
-svm_model.fit(normalized_train, train_labels) # train
-predicted_labels = svm_model.predict(normalized_test) # predict
+svm_model = svm.LinearSVC(C=C_param)  # kernel liniar
+svm_model.fit(normalized_train, train_labels)  # train
+predicted_labels = svm_model.predict(normalized_test)  # predict
 
 print("Accuracy: " + str(calc_accuracy(predicted_labels, test_labels)))
+print("F1: " + str(f1_score(predicted_labels, test_labels)))
 
+words = np.array(bagofwords.word_list)
+weights = np.squeeze(svm_model.coef_)
+indexes = np.argsort(weights)
+print("the first 10 negative (spam) words are", words[indexes[-10:]])
+print("the first 10 positive (not spam) words are", words[indexes[:10]])
